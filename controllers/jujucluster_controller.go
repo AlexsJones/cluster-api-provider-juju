@@ -19,18 +19,23 @@ package controllers
 import (
 	"context"
 
+	"cluster-api-provider-juju/pkg/juju"
+
+	"cluster-api-provider-juju/api/v1alpha3"
+	infrastructurev1alpha3 "cluster-api-provider-juju/api/v1alpha3"
+
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-
-	infrastructurev1alpha3 "cluster-api-provider-juju/api/v1alpha3"
 )
 
 // JujuClusterReconciler reconciles a JujuCluster object
 type JujuClusterReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme     *runtime.Scheme
+	JujuClient juju.IJuju
 }
 
 //+kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io,resources=jujuclusters,verbs=get;list;watch;create;update;patch;delete
@@ -48,6 +53,16 @@ type JujuClusterReconciler struct {
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.0/pkg/reconcile
 func (r *JujuClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
+
+	jujuCluster := &v1alpha3.JujuCluster{}
+	err := r.Get(ctx, req.NamespacedName, jujuCluster)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return ctrl.Result{}, nil
+		}
+
+		return ctrl.Result{}, err
+	}
 
 	// TODO(user): your logic here
 

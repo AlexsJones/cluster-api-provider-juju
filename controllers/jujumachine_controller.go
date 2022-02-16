@@ -19,18 +19,20 @@ package controllers
 import (
 	"context"
 
+	infrastructurev1alpha3 "cluster-api-provider-juju/api/v1alpha3"
+	"cluster-api-provider-juju/pkg/juju"
+
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-
-	infrastructurev1alpha3 "cluster-api-provider-juju/api/v1alpha3"
 )
 
 // JujuMachineReconciler reconciles a JujuMachine object
 type JujuMachineReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme     *runtime.Scheme
+	JujuClient juju.IJuju
 }
 
 //+kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io,resources=jujumachines,verbs=get;list;watch;create;update;patch;delete

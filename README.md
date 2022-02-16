@@ -10,6 +10,8 @@ It enables you to provision [Charmed Kubernetes](https://ubuntu.com/kubernetes) 
 
 - Setup a local Kubernetes cluster with Microk8s
 - `clusterctl init`
+- Install manifests `make install`
+- Run the `main.go` locally and connect to the cluster
 
 
 #### Dependencies

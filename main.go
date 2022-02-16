@@ -33,6 +33,7 @@ import (
 
 	infrastructurev1alpha3 "cluster-api-provider-juju/api/v1alpha3"
 	"cluster-api-provider-juju/controllers"
+	"cluster-api-provider-juju/pkg/juju"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -78,16 +79,22 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Create the juju client interface
+	// For the purposes of running locally as a demo, we'll use the local Juju yaml
+	jujuClient := juju.NewJujuCLI()
+
 	if err = (&controllers.JujuClusterReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:     mgr.GetClient(),
+		Scheme:     mgr.GetScheme(),
+		JujuClient: jujuClient,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "JujuCluster")
 		os.Exit(1)
 	}
 	if err = (&controllers.JujuMachineReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:     mgr.GetClient(),
+		Scheme:     mgr.GetScheme(),
+		JujuClient: jujuClient,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "JujuMachine")
 		os.Exit(1)
