@@ -1,43 +1,66 @@
 package juju
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"os/exec"
+
+	"github.com/fatih/color"
 )
 
-type JujuCLI struct {
+type JujuActuator struct {
 }
 
-func NewJujuCLI() *JujuCLI {
+func NewJujuActuator() *JujuActuator {
 
-	return &JujuCLI{}
+	return &JujuActuator{}
 }
 
-func (j *JujuCLI) exec(args ...string) error {
+func (j *JujuActuator) exec(args ...string) error {
 	cmd := exec.Command("juju", args...)
 	stdout, err := cmd.Output()
-
+	stderr, _ := cmd.StderrPipe()
+	fmt.Print(color.BlueString(string(stdout)))
 	if err != nil {
 		fmt.Println(err.Error())
 		return err
 	}
-
-	fmt.Print(string(stdout))
+	scanner := bufio.NewScanner(stderr)
+	for scanner.Scan() {
+		fmt.Println(color.RedString(scanner.Text()))
+	}
 
 	return nil
 }
 
-func (j *JujuCLI) CreateControllerIfNotExists(ctx context.Context, controllerName string) error {
+func (j *JujuActuator) switchControllerContext(controllerName string) error {
+
+	j.exec("switch", "controllerName")
+
+	return nil
+}
+
+func (j *JujuActuator) CreateControllerIfNotExists(ctx context.Context, controllerName string) error {
 	return j.exec("controller", "add", controllerName)
 }
 
-func (j *JujuCLI) CreateModelIfNotExists(ctx context.Context, modelName string) error {
-	// TODO: Make this better
-	return j.exec("add-model", modelName)
+func (j *JujuActuator) CreateModelIfNotExists(ctx context.Context, modelName string, controllerName string) error {
 
+	if err := j.switchControllerContext(controllerName); err != nil {
+		return err
+	}
+	return j.exec("add-model", "add", modelName)
 }
 
-func (j *JujuCLI) CreateCluster(ctx context.Context) error {
-	return j.exec("deploy", "charmed-kubernetes")
+func (j *JujuActuator) CreateCluster(ctx context.Context, modelName string, controllerName string) error {
+
+	if err := j.switchControllerContext(controllerName); err != nil {
+		return err
+	}
+	return j.exec("deploy", "charmed-kubernetes", "-m", modelName)
+}
+
+func (j *JujuActuator) GetClusterStatus(modelName string, controllerName string) (E_JUJU_CLUSTER_STATUS, error) {
+	return E_JUJU_CLUSTER_STATUS_UNKNOWN, nil
 }

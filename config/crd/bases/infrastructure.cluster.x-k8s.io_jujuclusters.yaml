@@ -15,7 +15,17 @@ spec:
     singular: jujucluster
   scope: Namespaced
   versions:
-  - name: v1alpha3
+  - additionalPrinterColumns:
+    - jsonPath: .status.state
+      name: Status
+      type: string
+    - jsonPath: .spec.controllerName
+      name: Controller
+      type: string
+    - jsonPath: .spec.modelName
+      name: Model
+      type: string
+    name: v1alpha3
     schema:
       openAPIV3Schema:
         description: JujuCluster is the Schema for the jujuclusters API
@@ -35,13 +45,20 @@ spec:
           spec:
             description: JujuClusterSpec defines the desired state of JujuCluster
             properties:
-              foo:
-                description: Foo is an example field of JujuCluster. Edit jujucluster_types.go
-                  to remove/update
+              controllerName:
+                description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+                  Important: Run "make" to regenerate code after modifying this file'
+                type: string
+              modelName:
+                type: string
+              overlay:
                 type: string
             type: object
           status:
             description: JujuClusterStatus defines the observed state of JujuCluster
+            properties:
+              state:
+                type: string
             type: object
         type: object
     served: true

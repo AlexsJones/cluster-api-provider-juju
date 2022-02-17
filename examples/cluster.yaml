@@ -3,6 +3,7 @@ kind: JujuCluster
 metadata:
   name: cluster-example
 spec:
+  controllerName: aws-eu-west-2
   modelName: charmedk8s
   overlay: |
     description: Charmed Kubernetes overlay to add Calico CNI.

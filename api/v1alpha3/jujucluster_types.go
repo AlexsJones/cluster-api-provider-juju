@@ -27,20 +27,21 @@ import (
 type JujuClusterSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-
-	ModelName string `json:"modelName,omitempty"`
-	Overlay   string `json:"overlay,omitempty"`
+	ControllerName string `json:"controllerName,omitempty"`
+	ModelName      string `json:"modelName,omitempty"`
+	Overlay        string `json:"overlay,omitempty"`
 }
 
 // JujuClusterStatus defines the observed state of JujuCluster
 type JujuClusterStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	State string `json:"state,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
-
+//+kubebuilder:printcolumn:name="Status",type="string",JSONPath=`.status.state`
+//+kubebuilder:printcolumn:name="Controller",type="string",JSONPath=`.spec.controllerName`
+//+kubebuilder:printcolumn:name="Model",type="string",JSONPath=`.spec.modelName`
 // JujuCluster is the Schema for the jujuclusters API
 type JujuCluster struct {
 	metav1.TypeMeta   `json:",inline"`

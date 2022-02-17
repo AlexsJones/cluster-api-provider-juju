@@ -81,7 +81,7 @@ func main() {
 
 	// Create the juju client interface
 	// For the purposes of running locally as a demo, we'll use the local Juju yaml
-	jujuClient := juju.NewJujuCLI()
+	jujuClient := juju.NewJujuActuator()
 
 	if err = (&controllers.JujuClusterReconciler{
 		Client:     mgr.GetClient(),

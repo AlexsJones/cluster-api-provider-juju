@@ -52,7 +52,7 @@ type JujuClusterReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.0/pkg/reconcile
 func (r *JujuClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	logger := log.FromContext(ctx)
 
 	jujuCluster := &v1alpha3.JujuCluster{}
 	err := r.Get(ctx, req.NamespacedName, jujuCluster)
@@ -60,12 +60,20 @@ func (r *JujuClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		if apierrors.IsNotFound(err) {
 			return ctrl.Result{}, nil
 		}
-
 		return ctrl.Result{}, err
 	}
 
-	// TODO(user): your logic here
+	switch jujuCluster.Status.State {
+	case "":
+		// The default case for a newly created Custom Resource
+		jujuCluster.Status.State = "Pending"
+		// Update the cluster object before continuing
+		if err = r.Update(ctx, jujuCluster); err != nil {
+			logger.Error(err, "Failed to update JujuCluster status")
+		}
+	case "Pending":
 
+	}
 	return ctrl.Result{}, nil
 }
 
