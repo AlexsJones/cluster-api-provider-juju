@@ -1,10 +1,18 @@
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+kind: JujuConfiguration
+metadata:
+  name: juju-config-cluster-example
+spec:
+  controllerName: aws-eu-west-2
+  modelName: charmedk8s
+---
+# Upon creation this will create a secret with the Kubeconfig for this cluster in
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
 kind: JujuCluster
 metadata:
   name: cluster-example
 spec:
-  controllerName: aws-eu-west-2
-  modelName: charmedk8s
+  jujuConfiguration: juju-config-cluster-example
   overlay: |
     description: Charmed Kubernetes overlay to add Calico CNI.
     applications:

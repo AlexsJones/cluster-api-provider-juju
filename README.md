@@ -5,6 +5,7 @@
 This is the [juju](https://juju.is/) provider for cluster API.
 It enables you to provision [Charmed Kubernetes](https://ubuntu.com/kubernetes) infrastructure.
 
+<img src="images/provider.png" width="500">
 
 ### Development
 

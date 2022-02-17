@@ -19,10 +19,10 @@ package controllers
 import (
 	"context"
 
-	"cluster-api-provider-juju/pkg/juju"
-
 	"cluster-api-provider-juju/api/v1alpha3"
 	infrastructurev1alpha3 "cluster-api-provider-juju/api/v1alpha3"
+	"cluster-api-provider-juju/pkg/juju"
+	"cluster-api-provider-juju/pkg/utils"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -62,17 +62,40 @@ func (r *JujuClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		}
 		return ctrl.Result{}, err
 	}
+	// Fetch the JujuConfiguration object
+	jujuConfiguration, err := utils.FetchJujuConfigurationObject(jujuCluster, r.Client, ctx)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
 
 	switch jujuCluster.Status.State {
 	case "":
-		// The default case for a newly created Custom Resource
-		jujuCluster.Status.State = "Pending"
+		// If certain pre-conditions are required do them
+		// Otherwise update to provisioning state
+		if err := r.JujuClient.CreateCluster(jujuConfiguration, jujuCluster); err != nil {
+			return ctrl.Result{}, err
+		}
+
+		jujuCluster.Status.State = "Provisioning"
 		// Update the cluster object before continuing
 		if err = r.Update(ctx, jujuCluster); err != nil {
 			logger.Error(err, "Failed to update JujuCluster status")
 		}
-	case "Pending":
+	case "Provisioning":
+		status, err := r.JujuClient.GetClusterStatus(jujuConfiguration)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+		switch status {
+		case juju.E_JUJU_CLUSTER_STATUS_RUNNING:
+			jujuCluster.Status.State = "Running"
 
+		case juju.E_JUJU_CLUSTER_STATUS_UNKNOWN:
+			jujuCluster.Status.State = "Unknown"
+		}
+		if err = r.Update(ctx, jujuCluster); err != nil {
+			logger.Error(err, "Failed to update JujuCluster status")
+		}
 	}
 	return ctrl.Result{}, nil
 }

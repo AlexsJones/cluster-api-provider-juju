@@ -1,6 +1,8 @@
 package juju
 
-import "context"
+import (
+	"cluster-api-provider-juju/api/v1alpha3"
+)
 
 type E_JUJU_CLUSTER_STATUS int
 
@@ -16,8 +18,9 @@ type IJuju interface {
 	// Within this initial implementation, a Kubernetes cluster name is equal to a model name
 	// Also Juju CLI assumes stateful context, however for future implementations we always require the
 	// controller and model for working with the cluster
-	GetClusterStatus(modelname string, controllerName string) (E_JUJU_CLUSTER_STATUS, error)
-	CreateControllerIfNotExists(ctx context.Context, controllerName string) error
-	CreateModelIfNotExists(ctx context.Context, modelName string, controllerName string) error
-	CreateCluster(ctx context.Context, modelName string, controllerName string) error
+	GetClusterStatus(jujuConfiguration *v1alpha3.JujuConfiguration) (E_JUJU_CLUSTER_STATUS, error)
+	CreateControllerIfNotExists(jujuConfiguration *v1alpha3.JujuConfiguration) error
+	CreateModelIfNotExists(jujuConfiguration *v1alpha3.JujuConfiguration) error
+	CreateCluster(jujuConfiguration *v1alpha3.JujuConfiguration, cluster *v1alpha3.JujuCluster) error
+	DestroyCluster(jujuConfiguration *v1alpha3.JujuConfiguration, cluster *v1alpha3.JujuCluster) error
 }

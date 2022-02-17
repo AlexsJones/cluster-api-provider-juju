@@ -5,24 +5,27 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.8.0
   creationTimestamp: null
-  name: jujuclusters.infrastructure.cluster.x-k8s.io
+  name: jujuconfigurations.infrastructure.cluster.x-k8s.io
 spec:
   group: infrastructure.cluster.x-k8s.io
   names:
-    kind: JujuCluster
-    listKind: JujuClusterList
-    plural: jujuclusters
-    singular: jujucluster
+    kind: JujuConfiguration
+    listKind: JujuConfigurationList
+    plural: jujuconfigurations
+    singular: jujuconfiguration
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
-    - jsonPath: .status.state
-      name: Status
+    - jsonPath: .spec.controllerName
+      name: Controller
+      type: string
+    - jsonPath: .spec.modelName
+      name: Model
       type: string
     name: v1alpha3
     schema:
       openAPIV3Schema:
-        description: JujuCluster is the Schema for the jujuclusters API
+        description: JujuConfiguration is the Schema for the jujuconfigurations API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -37,20 +40,20 @@ spec:
           metadata:
             type: object
           spec:
-            description: JujuClusterSpec defines the desired state of JujuCluster
+            description: 'EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN! NOTE:
+              json tags are required.  Any new fields you add must have json tags
+              for the fields to be serialized. JujuConfigurationSpec defines the desired
+              state of JujuConfiguration'
             properties:
-              jujuConfiguration:
+              controllerName:
                 description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
                   Important: Run "make" to regenerate code after modifying this file'
                 type: string
-              overlay:
+              modelName:
                 type: string
             type: object
           status:
-            description: JujuClusterStatus defines the observed state of JujuCluster
-            properties:
-              state:
-                type: string
+            description: JujuConfigurationStatus defines the observed state of JujuConfiguration
             type: object
         type: object
     served: true
