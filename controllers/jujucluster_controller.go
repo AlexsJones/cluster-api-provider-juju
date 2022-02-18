@@ -65,6 +65,12 @@ func (r *JujuClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		}
 		return ctrl.Result{}, err
 	}
+	// Fetch the JujuConfiguration object
+	jujuConfiguration, err := utils.FetchJujuConfigurationObject(jujuCluster, r.Client, ctx)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
 	finalizerName := "infrastructure.cluster.x-k8s.io/finalizer"
 	// Check to see if the Cluster has a finalizer
 	if jujuCluster.ObjectMeta.DeletionTimestamp.IsZero() {
@@ -77,54 +83,90 @@ func (r *JujuClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 				return ctrl.Result{}, err
 			}
 		}
+		// Configuration object finalizer
+		if !ctrlutil.ContainsFinalizer(jujuConfiguration, finalizerName) {
+			ctrlutil.AddFinalizer(jujuConfiguration, finalizerName)
+			if err := r.Update(ctx, jujuConfiguration); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
 	} else {
 		// Check to see if the Cluster is under deletion
 		if controllerutil.ContainsFinalizer(jujuCluster, finalizerName) {
-			//TODO:
-			// remove our finalizer from the list and update it.
+
+			// The object is being deleted
+			jujuCluster.Status.State = "Deleting"
+			if err := r.Status().Update(ctx, jujuCluster); err != nil {
+				return ctrl.Result{}, err
+			}
+
+			jujuCluster = &v1alpha3.JujuCluster{}
+			err := r.Get(ctx, req.NamespacedName, jujuCluster)
+			if err != nil {
+				if apierrors.IsNotFound(err) {
+					return ctrl.Result{}, nil
+				}
+				return ctrl.Result{}, err
+			}
+
+			if err := r.JujuClient.DestroyCluster(jujuConfiguration, jujuCluster); err != nil {
+				return ctrl.Result{}, err
+			}
+
+			// remove our finalizer from the Cluster and update it.
 			controllerutil.RemoveFinalizer(jujuCluster, finalizerName)
 			if err := r.Update(ctx, jujuCluster); err != nil {
 				return ctrl.Result{}, err
 			}
-		}
 
-		// Fetch the JujuConfiguration object
-		jujuConfiguration, err := utils.FetchJujuConfigurationObject(jujuCluster, r.Client, ctx)
-		if err != nil {
-			return ctrl.Result{}, err
-		}
-
-		switch jujuCluster.Status.State {
-		case "":
-			// If certain pre-conditions are required do them
-			// Otherwise update to provisioning state
-			if err := r.JujuClient.CreateCluster(jujuConfiguration, jujuCluster); err != nil {
+			// remove our finalizer from the Config and update it.
+			controllerutil.RemoveFinalizer(jujuConfiguration, finalizerName)
+			if err := r.Update(ctx, jujuConfiguration); err != nil {
 				return ctrl.Result{}, err
-			}
-
-			jujuCluster.Status.State = "Provisioning"
-			// Update the cluster object before continuing
-			if err = r.Update(ctx, jujuCluster); err != nil {
-				logger.Error(err, "Failed to update JujuCluster status")
-			}
-
-		case "Provisioning":
-			status, err := r.JujuClient.GetClusterStatus(jujuConfiguration)
-			if err != nil {
-				return ctrl.Result{}, err
-			}
-			switch status {
-			case juju.E_JUJU_CLUSTER_STATUS_RUNNING:
-				jujuCluster.Status.State = "Running"
-
-			case juju.E_JUJU_CLUSTER_STATUS_UNKNOWN:
-				jujuCluster.Status.State = "Unknown"
-			}
-			if err = r.Update(ctx, jujuCluster); err != nil {
-				logger.Error(err, "Failed to update JujuCluster status")
 			}
 		}
 	}
+
+	switch jujuCluster.Status.State {
+	case "":
+		status, err := r.JujuClient.GetClusterStatus(jujuConfiguration)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+		switch status {
+		case juju.E_JUJU_CLUSTER_STATUS_RUNNING:
+			jujuCluster.Status.State = "Running"
+			return ctrl.Result{}, r.Status().Update(ctx, jujuCluster)
+		}
+		// Check if the cluster exists, otherwise create it
+		if err := r.JujuClient.CreateCluster(jujuConfiguration, jujuCluster); err != nil {
+			return ctrl.Result{}, err
+		}
+
+		jujuCluster.Status.State = "Provisioning"
+		// Update the cluster object before continuing
+		if err = r.Status().Update(ctx, jujuCluster); err != nil {
+			logger.Error(err, "Failed to update JujuCluster status")
+		}
+	case "Unknown":
+		fallthrough
+	case "Provisioning":
+		status, err := r.JujuClient.GetClusterStatus(jujuConfiguration)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+		switch status {
+		case juju.E_JUJU_CLUSTER_STATUS_RUNNING:
+			jujuCluster.Status.State = "Running"
+
+		case juju.E_JUJU_CLUSTER_STATUS_UNKNOWN:
+			jujuCluster.Status.State = "Provisioning"
+		}
+		if err = r.Status().Update(ctx, jujuCluster); err != nil {
+			logger.Error(err, "Failed to update JujuCluster status")
+		}
+	}
+
 	return ctrl.Result{}, nil
 
 }

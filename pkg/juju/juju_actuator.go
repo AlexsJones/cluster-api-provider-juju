@@ -4,6 +4,8 @@ import (
 	"cluster-api-provider-juju/api/v1alpha3"
 	"fmt"
 	"os/exec"
+	"strconv"
+	"strings"
 
 	"github.com/fatih/color"
 )
@@ -34,6 +36,24 @@ func (j *JujuActuator) switchControllerContext(controllerName string) error {
 
 func (j *JujuActuator) GetClusterStatus(jujuConfiguration *v1alpha3.JujuConfiguration) (E_JUJU_CLUSTER_STATUS, error) {
 
+	if err := j.switchControllerContext(jujuConfiguration.Spec.ControllerName); err != nil {
+		return E_JUJU_CLUSTER_STATUS_UNKNOWN, err
+	}
+
+	cmd, err := exec.Command("bash", "-c", "juju status | grep active | wc -l").Output()
+	cmdOutput := strings.TrimSuffix(strings.TrimSpace(string(cmd)), "\n")
+	if err != nil {
+		fmt.Println(err.Error())
+		return E_JUJU_CLUSTER_STATUS_UNKNOWN, err
+	}
+	i, err := strconv.Atoi(cmdOutput)
+	if err != nil {
+		return E_JUJU_CLUSTER_STATUS_UNKNOWN, err
+	}
+	if i > 25 {
+		return E_JUJU_CLUSTER_STATUS_RUNNING, nil
+	}
+
 	return E_JUJU_CLUSTER_STATUS_UNKNOWN, nil
 }
 func (j *JujuActuator) CreateControllerIfNotExists(jujuConfiguration *v1alpha3.JujuConfiguration) error {
@@ -59,7 +79,7 @@ func (j *JujuActuator) DestroyCluster(jujuConfiguration *v1alpha3.JujuConfigurat
 		return err
 	}
 
-	if err := j.exec("destroy-model", jujuConfiguration.Spec.ModelName); err != nil {
+	if err := j.exec("destroy-model", "-y", jujuConfiguration.Spec.ModelName, "--force", "--destroy-storage", "--no-wait"); err != nil {
 		return err
 	}
 
