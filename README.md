@@ -9,8 +9,9 @@ It enables you to provision [Charmed Kubernetes](https://ubuntu.com/kubernetes) 
 
 ### Development
 
-- `make cluster-up`
-- Install manifests `make install`
+- `microk8s config > ~/config && export KUBECONFIG=~/config`
+- `clusterctl init`
+- Install local CRD's with `make install`
 - Run the `main.go` locally and connect to the cluster
 
 
@@ -19,5 +20,9 @@ It enables you to provision [Charmed Kubernetes](https://ubuntu.com/kubernetes) 
 - Either with MacOS or LinuxBrew
 
 ```
-brew install kubebuilder kustomize clusterctl kind
+brew install kubebuilder kustomize clusterctl
 ```
+
+- Optionally using `microK8s` or `kind`
+  - `snap install microk8s --classic`
+  - `brew install kind`

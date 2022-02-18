@@ -77,11 +77,6 @@ docker-build: test ## Build docker image with the manager.
 docker-push: ## Push docker image with the manager.
 	docker push ${IMG}
 
-.PHONY: cluster-up
-cluster-up:
-	kind create cluster
-	clusterctl init
-
 ##@ Deployment
 
 ifndef ignore-not-found
