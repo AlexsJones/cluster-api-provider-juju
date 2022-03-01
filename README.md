@@ -7,13 +7,21 @@ It enables you to provision [Charmed Kubernetes](https://ubuntu.com/kubernetes) 
 
 <img src="images/provider.png" width="500">
 
-### Development
+### Running from local
 
 - `microk8s config > ~/config && export KUBECONFIG=~/config`
 - `clusterctl init`
 - Install local CRD's with `make install`
 - Run the `main.go` locally and connect to the cluster
 
+
+### Running from cluster
+
+- `microk8s config > ~/config && export KUBECONFIG=~/config`
+- `clusterctl init`
+- `kubectl cp /home/<NAME>/.local/share/juju <pod-name>:/root/.local/share/ -n cluster-api-provider-juju-system`
+- Install local CRD's with `make install`
+- `make deploy`
 
 #### Dependencies
 

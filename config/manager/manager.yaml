@@ -24,15 +24,23 @@ spec:
       labels:
         control-plane: controller-manager
     spec:
-      securityContext:
-        runAsNonRoot: true
+      # securityContext:
+      #   runAsNonRoot: true  
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: cluster-api-provider-juju-data
       containers:
       - command:
-        - /manager
+        - /workspace/manager
         args:
         - --leader-elect
         image: controller:latest
+        imagePullPolicy: Always
         name: manager
+        volumeMounts:
+        - name: data
+          mountPath: /root/.local/share/juju
         securityContext:
           allowPrivilegeEscalation: false
         livenessProbe:
