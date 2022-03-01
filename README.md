@@ -17,11 +17,13 @@ It enables you to provision [Charmed Kubernetes](https://ubuntu.com/kubernetes) 
 
 #### Dependencies
 
-- Either with MacOS or LinuxBrew
+_Either with MacOS or LinuxBrew_
 
 ```
 brew install kubebuilder kustomize clusterctl
 ```
+
+- When running locally you will need `juju` installed and configured `sudo snap install juju --classic`
 
 - Optionally using `microK8s` or `kind`
   - `snap install microk8s --classic`

@@ -31,9 +31,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	infrastructurev1alpha3 "cluster-api-provider-juju/api/v1alpha3"
-	"cluster-api-provider-juju/controllers"
-	"cluster-api-provider-juju/pkg/juju"
+	infrastructurev1alpha3 "github.com/AlexsJones/cluster-api-provider-juju/api/v1alpha3"
+	"github.com/AlexsJones/cluster-api-provider-juju/controllers"
+	"github.com/AlexsJones/cluster-api-provider-juju/pkg/juju"
 	//+kubebuilder:scaffold:imports
 )
 

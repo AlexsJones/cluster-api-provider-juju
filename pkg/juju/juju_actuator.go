@@ -1,7 +1,7 @@
 package juju
 
 import (
-	"cluster-api-provider-juju/api/v1alpha3"
+	"github.com/AlexsJones/cluster-api-provider-juju/api/v1alpha3"
 	"fmt"
 	"os/exec"
 	"strconv"

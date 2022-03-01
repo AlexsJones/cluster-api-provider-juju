@@ -24,7 +24,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	infrastructurev1alpha3 "cluster-api-provider-juju/api/v1alpha3"
+	infrastructurev1alpha3 "github.com/AlexsJones/cluster-api-provider-juju/api/v1alpha3"
 )
 
 // JujuConfigurationReconciler reconciles a JujuConfiguration object

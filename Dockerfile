@@ -1,6 +1,16 @@
-# Build the manager binary
-FROM golang:1.17 as builder
+FROM alpine:latest
 
+RUN apk add --no-cache git make musl-dev go curl
+
+# Configure Go
+ENV GOROOT /usr/lib/go
+ENV GOPATH /go
+ENV PATH /go/bin:$PATH
+
+RUN mkdir -p ${GOPATH}/src ${GOPATH}/bin
+RUN curl -LO https://launchpad.net/juju/2.9/2.9.0/+download/juju-2.9.0-linux-amd64.tar.xz
+RUN tar xf juju-2.9.0-linux-amd64.tar.xz
+RUN install -o root -g root -m 0755 juju /usr/local/bin/juju
 WORKDIR /workspace
 # Copy the Go Modules manifests
 COPY go.mod go.mod
@@ -13,15 +23,8 @@ RUN go mod download
 COPY main.go main.go
 COPY api/ api/
 COPY controllers/ controllers/
-
+COPY pkg/ pkg/
 # Build
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o manager main.go
 
-# Use distroless as minimal base image to package the manager binary
-# Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM gcr.io/distroless/static:nonroot
-WORKDIR /
-COPY --from=builder /workspace/manager .
-USER 65532:65532
-
-ENTRYPOINT ["/manager"]
+ENTRYPOINT ["/workspace/manager"]

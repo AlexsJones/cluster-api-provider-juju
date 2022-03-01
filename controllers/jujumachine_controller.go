@@ -19,8 +19,8 @@ package controllers
 import (
 	"context"
 
-	infrastructurev1alpha3 "cluster-api-provider-juju/api/v1alpha3"
-	"cluster-api-provider-juju/pkg/juju"
+	infrastructurev1alpha3 "github.com/AlexsJones/cluster-api-provider-juju/api/v1alpha3"
+	"github.com/AlexsJones/cluster-api-provider-juju/pkg/juju"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"

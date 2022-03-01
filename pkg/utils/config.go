@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"cluster-api-provider-juju/api/v1alpha3"
+	"github.com/AlexsJones/cluster-api-provider-juju/api/v1alpha3"
 	"context"
 
 	"k8s.io/apimachinery/pkg/types"
